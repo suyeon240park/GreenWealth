@@ -82,7 +82,10 @@ export function PlaidLinkButton({ onSuccess }: PlaidLinkButtonProps) {
   }, [token, open, getToken])
 
   return (
-    <Button onClick={handleClick} disabled={loading || (token && !ready)}>
+    <Button 
+      onClick={handleClick} 
+      disabled={Boolean(loading || (token && !ready))}
+    >
       {loading ? "Loading..." : "Connect Bank Account"}
     </Button>
   )
