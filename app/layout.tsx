@@ -11,7 +11,7 @@ import { Leaf } from "lucide-react"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "EcoFinance Advisor",
+  title: "GreenWealth Advisor",
   description: "AI-powered personal finance and sustainability advisor",
 }
 
@@ -30,7 +30,7 @@ export default function RootLayout({
                 <div className="flex h-16 items-center px-4">
                   <Link href="/" className="flex items-center gap-2">
                     <Leaf className="h-6 w-6 text-green-500" />
-                    <span className="text-lg font-bold">EcoFinance</span>
+                    <span className="text-lg font-bold">GreenWealth</span>
                   </Link>
                 </div>
               </header>
