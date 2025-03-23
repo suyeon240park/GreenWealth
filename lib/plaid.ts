@@ -115,3 +115,18 @@ export async function fetchAccountSummary(clientId: string) {
     throw error
   }
 }
+
+export async function fetchInsights() {
+  try {
+    const response = await fetch(`http://localhost:5000/api/fetch_insights`)
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch insights")
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching insights:", error)
+    throw error
+  }
+}

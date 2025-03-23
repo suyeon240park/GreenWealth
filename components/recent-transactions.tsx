@@ -122,7 +122,7 @@ export function RecentTransactions() {
 
   return (
     <div className="space-y-4">
-      {transactions.map((transaction) => (
+      {transactions.slice(0, 10).map((transaction) => (
         <div key={transaction.id} className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="flex h-9 w-9 items-center justify-center rounded-full border bg-muted">
