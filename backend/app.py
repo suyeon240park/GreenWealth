@@ -20,6 +20,8 @@ import os
 import json
 from dotenv import load_dotenv
 from chatbot import get_chat_response
+import requests
+from cohere_insights import get_recommendations, format_data, fetch_data
 
 load_dotenv()
 
@@ -399,8 +401,12 @@ def get_account_summary():
 @app.route('/api/ai-insights', methods=['GET'])
 def get_ai_insights():
     try:
-        # Return empty insights since Cohere is not being used
-        return jsonify([])
+        data = fetch_data()
+        formatted_data = format_data(data)
+        recommendations = get_recommendations(formatted_data)
+        if not recommendations:
+            return jsonify([])
+        return jsonify(recommendations)
     except Exception as e:
         print(f"Error generating AI insights: {str(e)}")
         return jsonify({"error": str(e)}), 500
@@ -451,6 +457,7 @@ def chat():
         import traceback
         print(f"Traceback: {traceback.format_exc()}")  # Debug log
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

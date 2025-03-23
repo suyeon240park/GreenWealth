@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { Car, Utensils, ShoppingBag, Home, Plane, Wrench, Briefcase, LightbulbIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { fetchInsights } from "@/app/actions"
 
 type Insight = {
   title: string
@@ -18,20 +17,21 @@ export function AiInsights() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const getInsights = async () => {
-      setIsLoading(true)
+    const fetchRecommendations = async () => {
       try {
-        const data = await fetchInsights()
-        setInsights(data)
-      } catch (error) {
-        console.error("Error fetching insights:", error)
+        const response = await fetch('http://localhost:5000/api/ai-insights');
+        if (!response.ok) {
+          throw new Error('Failed to fetch recommendations');
+        }
+        const data = await response.json();
+        setInsights(data);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    getInsights()
-  }, [])
+    fetchRecommendations();
+  }, []);
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -55,7 +55,14 @@ export function AiInsights() {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center p-4">Generating AI insights...</div>
+    return (
+      <div className="flex justify-center items-center p-4 space-x-1">
+        <span>Generating AI insights</span>
+        <span className="animate-bounce">.</span>
+        <span className="animate-bounce delay-100">.</span>
+        <span className="animate-bounce delay-200">.</span>
+      </div>
+    )
   }
 
   return (

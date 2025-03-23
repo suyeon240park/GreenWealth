@@ -125,16 +125,3 @@ def get_recommendations(formatted_data):
         logging.error(f"Error calling Cohere API: {e}")
         logging.info(f"Full response object: {response}")
         return None
-
-def main():
-    # Try to fetch real data first
-    data = fetch_data()
-    if not data:
-        logging.info("Fetching data failed.")
-    formatted_data = format_data(data)
-    recommendations = get_recommendations(formatted_data)
-    print(recommendations)
-
-
-if __name__ == '__main__':
-    main()
