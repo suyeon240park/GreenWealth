@@ -25,19 +25,6 @@ export default function DashboardPage() {
         {/* Account Summary Cards */}
         <AccountSummary />
 
-        {/* AI Insights Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>AI-Generated Insights</CardTitle>
-            <CardDescription>
-              Personalized recommendations to improve your finances and reduce your carbon footprint
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AiInsights />
-          </CardContent>
-        </Card>
-
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <Card className="lg:col-span-4">
             <CardHeader>
@@ -58,6 +45,19 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* AI Insights Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>AI-Generated Insights</CardTitle>
+            <CardDescription>
+              Personalized recommendations to improve your finances and reduce your carbon footprint
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AiInsights />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
