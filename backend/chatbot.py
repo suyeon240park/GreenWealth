@@ -69,25 +69,38 @@ def get_financial_data(access_token):
         print(f"Error fetching financial data: {str(e)}")
         return None
 
-def get_chat_response(message, conversation_history=None, access_token=None):
+def get_chat_response(message, conversation_history=None, financial_data=None):
     try:
-        # Get financial data if access token is provided
-        financial_data = None
-        if access_token:
-            financial_data = get_financial_data(access_token)
-        
         # Prepare context with financial data
-        context = "You are GreenWealth AI, a financial advisor focused on sustainable and eco-friendly financial decisions. "
+        context = """You are GreenWealth AI, a financial advisor focused on sustainable and eco-friendly financial decisions.
+
+RESPONSE FORMAT:
+1. Start with a brief greeting on its own line
+2. Add a blank line after the greeting
+3. Add each bullet point on its own line with a blank line between points
+4. Use simple bullet points (•)
+5. No special characters, asterisks, or markdown
+6. End with a single question on its own line after a blank line
+
+Example:
+Hi! Based on your spending of $X in travel.
+
+• First key point about spending
+
+• Second point with eco-friendly advice
+
+• Third point about potential savings
+
+Would you like more specific advice?"""
+        
         if financial_data:
             context += f"""
-            Here's the user's financial data for the last 30 days:
-            - Total Spending: ${financial_data['total_spending']:,.2f}
-            - Number of Transactions: {financial_data['transaction_count']}
-            - Spending by Category:
-            {json.dumps(financial_data['spending_by_category'], indent=2)}
-            
-            Use this data to provide personalized advice about their spending patterns and suggest eco-friendly alternatives.
-            """
+
+Your financial data:
+Total Spending: ${financial_data['total_spending']:,.2f}
+Categories: {json.dumps(financial_data['spending_by_category'], indent=2)}
+
+Use this data to provide personalized advice."""
         
         # Prepare conversation messages
         messages = [{"role": "system", "content": context}]
@@ -101,7 +114,8 @@ def get_chat_response(message, conversation_history=None, access_token=None):
             message=message,
             preamble=context,
             conversation_id=None,
-            max_tokens=1000
+            max_tokens=500,
+            temperature=0.7
         )
         
         return response.text
