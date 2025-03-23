@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 import os
 import json
 from dotenv import load_dotenv
+from chatbot import get_chat_response
 
 load_dotenv()
 
@@ -40,10 +41,14 @@ client = plaid_api.PlaidApi(api_client)
 # In-memory storage for access tokens (in production, use a database)
 access_tokens = {}
 
+# Store conversation history
+conversation_history = {}
+
 @app.route('/api/create_link_token', methods=['POST'])
 def create_link_token():
     try:
-        client_id = os.getenv('PLAID_CLIENT_ID')
+        data = request.get_json()
+        client_id = data.get('clientId') or os.getenv('PLAID_CLIENT_ID')
 
         # Create a link token with more specific configurations
         link_request = LinkTokenCreateRequest(
@@ -115,7 +120,8 @@ def get_transactions():
         access_token = access_tokens.get(client_id)
         
         if not access_token:
-            return jsonify({"error": "No access token found for client"}), 400
+            # Return empty list if no bank connected
+            return jsonify([])
         
         # Set date range for transactions
         end_date = datetime.now().date()
@@ -132,8 +138,6 @@ def get_transactions():
         
         response = client.transactions_get(request)
         transactions = response['transactions']
-
-        print(response)
         
         # Process transactions to match frontend format
         processed_transactions = []
@@ -156,6 +160,8 @@ def get_transactions():
     
     except plaid.ApiException as e:
         return jsonify({"error": e.body}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def map_category_to_carbon_impact(category):
     # Find them from API doc
@@ -189,7 +195,8 @@ def get_carbon_footprint():
         access_token = access_tokens.get(client_id)
         
         if not access_token:
-            return jsonify({"error": "No access token found for client"}), 400
+            # Return empty data if no bank connected
+            return jsonify([])
         
         # Set date range for transactions
         end_date = datetime.now().date()
@@ -252,11 +259,11 @@ def get_carbon_footprint():
 def get_financial_overview():
     try:
         client_id = os.getenv('PLAID_CLIENT_ID')
-        print(client_id)
         access_token = access_tokens.get(client_id)
         
         if not access_token:
-            return jsonify({"error": "No access token found for client"}), 400
+            # Return empty data if no bank connected
+            return jsonify([])
         
         # Set date range for transactions (last 6 months)
         end_date = datetime.now().date()
@@ -320,7 +327,15 @@ def get_account_summary():
         access_token = access_tokens.get(client_id)
         
         if not access_token:
-            return jsonify({"error": "No access token found for client"}), 400
+            # Return default data if no bank connected
+            return jsonify({
+                "totalBalance": "$0.00",
+                "monthlySpending": "$0.00",
+                "carbonFootprint": "0 tons CO₂",
+                "balanceChange": "0%",
+                "spendingChange": "0%",
+                "carbonChange": "0%"
+            })
         
         # Get account balances
         accounts_request = AccountsGetRequest(access_token=access_token)
@@ -381,6 +396,61 @@ def get_account_summary():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/ai-insights', methods=['GET'])
+def get_ai_insights():
+    try:
+        # Return empty insights since Cohere is not being used
+        return jsonify([])
+    except Exception as e:
+        print(f"Error generating AI insights: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    try:
+        print("Received chat request")  # Debug log
+        data = request.get_json()
+        print(f"Request data: {data}")  # Debug log
+        
+        message = data.get('message')
+        user_id = data.get('user_id', 'default')
+        
+        if not message:
+            print("No message provided")  # Debug log
+            return jsonify({"error": "Message is required"}), 400
+        
+        print(f"Processing message for user {user_id}: {message}")  # Debug log
+        
+        # Get or initialize conversation history for this user
+        if user_id not in conversation_history:
+            conversation_history[user_id] = []
+        
+        # Get access token for the user
+        access_token = access_tokens.get(user_id)
+        
+        # Get response from chatbot
+        print("Getting response from chatbot...")  # Debug log
+        response = get_chat_response(message, conversation_history[user_id], access_token)
+        print(f"Chatbot response: {response}")  # Debug log
+        
+        # Update conversation history
+        conversation_history[user_id].append({"role": "user", "content": message})
+        conversation_history[user_id].append({"role": "assistant", "content": response})
+        
+        # Keep only the last 10 messages to prevent context from getting too long
+        if len(conversation_history[user_id]) > 20:
+            conversation_history[user_id] = conversation_history[user_id][-20:]
+        
+        return jsonify({
+            "response": response,
+            "conversation_history": conversation_history[user_id]
+        })
+        
+    except Exception as e:
+        print(f"Error in chat endpoint: {str(e)}")  # Debug log
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")  # Debug log
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
