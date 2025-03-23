@@ -1,133 +1,56 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import { LightbulbIcon, Leaf, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Car, Utensils, ShoppingBag, Home, Plane, Wrench, Briefcase, LightbulbIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Home } from "lucide-react"
+import { fetchInsights } from "@/app/actions"
 
 type Insight = {
   title: string
   description: string
   savingsAmount: string | null
   carbonReduction: string
-  icon: string
+  category: string
 }
 
 export function AiInsights() {
   const [insights, setInsights] = useState<Insight[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const getInsights = async () => {
       setIsLoading(true)
-      /*
       try {
         const data = await fetchInsights()
-
-        // If we have less than 6 insights, duplicate some to reach 6
-        let extendedData = [...data]
-        if (data.length < 6) {
-          // Create additional insights by modifying existing ones
-          const additionalInsights = data.map((insight, index) => ({
-            ...insight,
-            title: `Alternative ${insight.title}`,
-            id: `extended-${index}`,
-          }))
-          extendedData = [...data, ...additionalInsights].slice(0, 6)
-        }
-
-        setInsights(extendedData)
+        setInsights(data)
       } catch (error) {
         console.error("Error fetching insights:", error)
-        */
-        // Fallback mock data with 6 insights
-        setInsights([
-          {
-            title: "Reduce Transportation Emissions",
-            description:
-              "Switching to public transport twice a week could save you $120/month and reduce your carbon footprint by 30%.",
-            savingsAmount: "$120/month",
-            carbonReduction: "30%",
-            icon: "transportation",
-          },
-          {
-            title: "Grocery Shopping Tip",
-            description:
-              "Buying seasonal produce from local farmers markets can reduce your grocery carbon footprint by 25% and save approximately $15 per week.",
-            savingsAmount: "$60/month",
-            carbonReduction: "25%",
-            icon: "grocery",
-          },
-          {
-            title: "Online Shopping Consolidation",
-            description:
-              "Consolidating your Amazon orders to once per week instead of multiple orders can reduce packaging waste and delivery emissions by 40%.",
-            savingsAmount: null,
-            carbonReduction: "40%",
-            icon: "shopping",
-          },
-          {
-            title: "Reduce Home Energy Usage",
-            description:
-              "Lowering your thermostat by 2 degrees in winter can save you $45/month on heating costs and reduce your carbon footprint.",
-            savingsAmount: "$45/month",
-            carbonReduction: "15%",
-            icon: "home",
-          },
-          {
-            title: "Switch to LED Lighting",
-            description:
-              "Replacing your home's light bulbs with LED alternatives can save $10/month on electricity and reduce energy consumption.",
-            savingsAmount: "$10/month",
-            carbonReduction: "8%",
-            icon: "home",
-          },
-          {
-            title: "Reduce Food Waste",
-            description:
-              "Planning meals and properly storing food can save a family of four up to $150/month while reducing methane emissions from landfills.",
-            savingsAmount: "$150/month",
-            carbonReduction: "20%",
-            icon: "grocery",
-          },
-        ])
-      } /*finally {
+      } finally {
         setIsLoading(false)
       }
     }
 
     getInsights()
   }, [])
-*/
-  }, [])
 
-  // Change them
-  const getIcon = (iconType: string) => {
-    switch (iconType) {
+  const getCategoryIcon = (category: string) => {
+    switch (category.toLowerCase()) {
       case "transportation":
-        return <LightbulbIcon className="h-5 w-5 text-amber-500" />
-      case "grocery":
-        return <LightbulbIcon className="h-5 w-5 text-amber-500" />
-      case "shopping":
-        return <ShoppingCart className="h-5 w-5 text-green-500" />
-      case "home":
-        return <Home className="h-5 w-5 text-blue-500" />
+        return <Car className="h-5 w-5 text-blue-500" />
+      case "travel":
+        return <Plane className="h-5 w-5 text-purple-500" />
+      case "food and drinks":
+        return <Utensils className="h-5 w-5 text-orange-500" />
+      case "general merchandise":
+        return <ShoppingBag className="h-5 w-5 text-pink-500" />
+      case "home improvement":
+        return <Wrench className="h-5 w-5 text-yellow-500" />
+      case "rent and utilities":
+        return <Home className="h-5 w-5 text-green-500" />
+      case "general services":
+        return <Briefcase className="h-5 w-5 text-indigo-500" />
       default:
-        return <Leaf className="h-5 w-5 text-green-500" />
-    }
-  }
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" })
-    }
-  }
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" })
+        return <LightbulbIcon className="h-5 w-5 text-amber-500" />
     }
   }
 
@@ -136,31 +59,16 @@ export function AiInsights() {
   }
 
   return (
-    <div className="relative">
-      {/* Scroll buttons */}
-      <div className="absolute left-0 top-1/2 z-10 -translate-y-1/2 md:flex hidden">
-        <Button variant="outline" size="icon" className="rounded-full bg-background shadow-sm" onClick={scrollLeft}>
-          <ChevronLeft className="h-5 w-5" />
-          <span className="sr-only">Scroll left</span>
-        </Button>
-      </div>
-      <div className="absolute right-0 top-1/2 z-10 -translate-y-1/2 md:flex hidden">
-        <Button variant="outline" size="icon" className="rounded-full bg-background shadow-sm" onClick={scrollRight}>
-          <ChevronRight className="h-5 w-5" />
-          <span className="sr-only">Scroll right</span>
-        </Button>
-      </div>
-
-      {/* Scrollable container */}
-      <div
-        ref={scrollContainerRef}
-        className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {insights.map((insight, index) => (
-          <div key={index} className="rounded-lg border bg-card p-5 shadow-sm flex-shrink-0 w-[300px] md:w-[350px]">
+    <div className="grid gap-4 md:grid-cols-3">
+      {insights.length === 0 ? (
+        <div className="col-span-3 text-center py-8">
+          <p className="text-muted-foreground">Connect your bank account to get personalized insights.</p>
+        </div>
+      ) : (
+        insights.map((insight, index) => (
+          <div key={index} className="rounded-lg border bg-card p-5 shadow-sm">
             <div className="mb-3 flex items-center gap-2">
-              {getIcon(insight.icon)}
+              {getCategoryIcon(insight.category)}
               <h3 className="font-semibold">{insight.title}</h3>
             </div>
             <p className="mb-4 text-sm text-muted-foreground">{insight.description}</p>
@@ -175,15 +83,9 @@ export function AiInsights() {
               </Badge>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Mobile scroll indicator */}
-      <div className="flex justify-center space-x-1 mt-2 md:hidden">
-        <div className="h-1 w-20 rounded-full bg-primary/30"></div>
-      </div>
+        ))
+      )}
     </div>
   )
 }
-
 
