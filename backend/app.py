@@ -93,7 +93,14 @@ def exchange_public_token():
     try:
         request_data = request.get_json()
         public_token = request_data.get('public_token')
-        client_id = os.getenv('PLAID_CLIENT_ID')
+        client_id = request_data.get('client_id')
+        
+        if not client_id:
+            print("No client_id provided in request")  # Debug log
+            return jsonify({"error": "client_id is required"}), 400
+            
+        print(f"Exchanging public token for client {client_id}")  # Debug log
+        print(f"Current access tokens: {access_tokens}")  # Debug log
         
         exchange_request = ItemPublicTokenExchangeRequest(
             public_token=public_token
@@ -105,6 +112,8 @@ def exchange_public_token():
         
         # Store the access token for this client
         access_tokens[client_id] = access_token
+        print(f"Stored access token for client {client_id}")  # Debug log
+        print(f"Updated access tokens: {access_tokens}")  # Debug log
         
         return jsonify({
             'access_token': access_token,
@@ -118,7 +127,7 @@ def exchange_public_token():
 @app.route('/api/transactions', methods=['GET'])
 def get_transactions():
     try:
-        client_id = os.getenv('PLAID_CLIENT_ID')
+        client_id = request.args.get('client_id', 'default')
         access_token = access_tokens.get(client_id)
         
         if not access_token:
@@ -129,7 +138,7 @@ def get_transactions():
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=30)
         
-        request = TransactionsGetRequest(
+        plaid_request = TransactionsGetRequest(
             access_token=access_token,
             start_date=start_date,
             end_date=end_date,
@@ -138,7 +147,7 @@ def get_transactions():
             )
         )
         
-        response = client.transactions_get(request)
+        response = client.transactions_get(plaid_request)
         transactions = response['transactions']
         
         # Process transactions to match frontend format
@@ -193,7 +202,7 @@ def calculate_carbon_footprint(amount, factor):
 @app.route('/api/carbon_footprint', methods=['GET'])
 def get_carbon_footprint():
     try:
-        client_id = os.getenv('PLAID_CLIENT_ID')
+        client_id = request.args.get('client_id', 'default')
         access_token = access_tokens.get(client_id)
         
         if not access_token:
@@ -204,7 +213,7 @@ def get_carbon_footprint():
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=30)
         
-        request = TransactionsGetRequest(
+        plaid_request = TransactionsGetRequest(
             access_token=access_token,
             start_date=start_date,
             end_date=end_date,
@@ -213,7 +222,7 @@ def get_carbon_footprint():
             )
         )
         
-        response = client.transactions_get(request)
+        response = client.transactions_get(plaid_request)
         transactions = response['transactions']
         
         # Calculate carbon footprint by category
@@ -260,7 +269,7 @@ def get_carbon_footprint():
 @app.route('/api/financial_overview', methods=['GET'])
 def get_financial_overview():
     try:
-        client_id = os.getenv('PLAID_CLIENT_ID')
+        client_id = request.args.get('client_id', 'default')
         access_token = access_tokens.get(client_id)
         
         if not access_token:
@@ -271,13 +280,13 @@ def get_financial_overview():
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=180)
         
-        request = TransactionsGetRequest(
+        plaid_request = TransactionsGetRequest(
             access_token=access_token,
             start_date=start_date,
             end_date=end_date
         )
         
-        response = client.transactions_get(request)
+        response = client.transactions_get(plaid_request)
         transactions = response['transactions']
         
         # Group transactions by month
@@ -325,7 +334,7 @@ def get_financial_overview():
 @app.route('/api/account_summary', methods=['GET'])
 def get_account_summary():
     try:
-        client_id = request.args.get('client_id', os.getenv('PLAID_CLIENT_ID'))
+        client_id = request.args.get('client_id', 'default')
         access_token = access_tokens.get(client_id)
         
         if not access_token:
@@ -426,6 +435,7 @@ def chat():
             return jsonify({"error": "Message is required"}), 400
         
         print(f"Processing message for user {user_id}: {message}")  # Debug log
+        print(f"Available access tokens: {access_tokens}")  # Debug log
         
         # Get or initialize conversation history for this user
         if user_id not in conversation_history:
@@ -433,10 +443,84 @@ def chat():
         
         # Get access token for the user
         access_token = access_tokens.get(user_id)
+        print(f"Access token for user {user_id}: {access_token}")  # Debug log
+        
+        # Get financial data if access token exists
+        financial_data = None
+        if access_token:
+            try:
+                # Get transactions for the last 30 days
+                end_date = datetime.now().date()
+                start_date = end_date - timedelta(days=30)
+                
+                plaid_request = TransactionsGetRequest(
+                    access_token=access_token,
+                    start_date=start_date,
+                    end_date=end_date,
+                    options=TransactionsGetRequestOptions(
+                        include_personal_finance_category=True
+                    )
+                )
+                
+                response = client.transactions_get(plaid_request)
+                transactions = response['transactions']
+                print(f"Retrieved {len(transactions)} transactions")  # Debug log
+                
+                # Process transactions
+                spending_by_category = {}
+                total_spending = 0
+                carbon_by_category = {}
+                total_carbon = 0
+                total_income = 0
+                
+                for transaction in transactions:
+                    if transaction.amount < 0:  # Expenses
+                        category = transaction.personal_finance_category.primary
+                        amount = abs(transaction.amount)
+                        
+                        # Calculate spending by category
+                        if category in spending_by_category:
+                            spending_by_category[category] += amount
+                        else:
+                            spending_by_category[category] = amount
+                        
+                        total_spending += amount
+                        
+                        # Calculate carbon impact
+                        carbon_impact = map_category_to_carbon_impact(category)
+                        carbon_amount = calculate_carbon_footprint(transaction.amount, carbon_impact['factor'])
+                        
+                        if category in carbon_by_category:
+                            carbon_by_category[category] += carbon_amount
+                        else:
+                            carbon_by_category[category] = carbon_amount
+                        
+                        total_carbon += carbon_amount
+                    else:  # Income
+                        total_income += transaction.amount
+                
+                financial_data = {
+                    'spending_by_category': spending_by_category,
+                    'total_spending': total_spending,
+                    'carbon_by_category': carbon_by_category,
+                    'total_carbon': total_carbon,
+                    'total_income': total_income,
+                    'transaction_count': len(transactions)
+                }
+                print(f"Fetched financial data: {financial_data}")  # Debug log
+            except Exception as e:
+                print(f"Error fetching financial data: {str(e)}")
+                print(f"Access token: {access_token}")  # Debug log
+                print(f"User ID: {user_id}")  # Debug log
+                import traceback
+                print(f"Traceback: {traceback.format_exc()}")  # Debug log
+        else:
+            print(f"No access token found for user {user_id}")  # Debug log
+            print(f"Available access tokens: {access_tokens}")  # Debug log
         
         # Get response from chatbot
         print("Getting response from chatbot...")  # Debug log
-        response = get_chat_response(message, conversation_history[user_id], access_token)
+        response = get_chat_response(message, conversation_history[user_id], financial_data)
         print(f"Chatbot response: {response}")  # Debug log
         
         # Update conversation history
@@ -460,5 +544,5 @@ def chat():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
 

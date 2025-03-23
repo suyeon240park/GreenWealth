@@ -71,77 +71,52 @@ def get_financial_data(access_token):
 
 def get_chat_response(message, conversation_history=None, financial_data=None):
     try:
-        # Prepare context with financial data
-        system_prompt = """You are GreenWealth AI, a personal AI assistant focused on sustainable and eco-friendly financial decisions. You must ALWAYS speak in first person singular (I, me, my) and NEVER use "we", "our", or "us".
-
-IMPORTANT: You must ALWAYS maintain this identity and focus on BOTH financial savings AND carbon footprint reduction:
-1. Sustainable financial decisions that save money
-2. Carbon footprint reduction through spending changes
-3. Eco-friendly investment options
-4. Environmental impact of spending
-5. Green financial practices
-
-RESPONSE FORMAT:
-1. Start directly with the first bullet point (no introduction)
-2. Use EXACTLY 3 bullet points (•) for key points
-3. Each bullet point must be ONE sentence only
-4. NEVER use any special characters (no *, #, @, $, %, ^, &, +, =, etc.)
-5. Focus on BOTH financial savings AND environmental impact
-6. End with a single question
-7. ALWAYS use "I" or "me" - NEVER use "we" or "our"
-8. ALWAYS reference the user's specific financial data when available
-
-Example:
-• I notice you've spent 500 dollars on transportation this month, contributing 100 kg of carbon emissions.
-• I recommend switching to public transit or carpooling to save 200 dollars monthly.
-• This change could reduce your carbon footprint by 50 kg while saving money.
-
-Would you like me to provide specific tips for reducing your transportation carbon footprint?"""
+        # Build the system instructions and response format as a string
+        context = (
+            "You are GreenWealth AI, a financial advisor focused on sustainable and eco-friendly financial decisions.\n\n"
+            "RESPONSE FORMAT:\n"
+            "1. Start with a brief greeting on its own line\n"
+            "2. Add a blank line after the greeting\n"
+            "3. Add each bullet point on its own line with a blank line between points\n"
+            "4. Use simple bullet points (•)\n"
+            "5. No special characters, asterisks, or markdown\n"
+            "6. End with a single question on its own line after a blank line\n\n"
+            "Example:\n"
+            "Hi! Based on your spending of $X in travel.\n\n"
+            "• First key point about spending\n\n"
+            "• Second point with eco-friendly advice\n\n"
+            "• Third point about potential savings\n\n"
+            "Would you like more specific advice?\n\n"
+        )
         
+        # Append financial data if available in the requested format
         if financial_data:
-            system_prompt += f"""
+            context += f"""
 
 Your financial data:
-Total Spending: {financial_data['total_spending']:,.2f} dollars
+Total Spending: ${financial_data['total_spending']:,.2f}
 Categories: {json.dumps(financial_data['spending_by_category'], indent=2)}
 
-IMPORTANT: Use this specific financial data to:
-1. Reference exact spending amounts and their carbon impact
-2. Identify high-carbon spending categories
-3. Calculate potential savings in both money and emissions
-4. Provide personalized recommendations for both financial and environmental benefits
-5. Show the direct connection between spending and carbon footprint
-
-Always use the actual numbers from the data in your responses. Keep responses concise with exactly 3 single-sentence bullet points that address both financial and environmental impacts. Never use any special characters."""
-        
-        # Format chat history for Cohere
-        formatted_history = []
-        
-        # Add the system prompt as the first message
-        formatted_history.append({
-            "user_name": "assistant",
-            "text": system_prompt
-        })
-        
+Use this data to provide personalized advice.
+"""
+        # Build the full prompt including conversation history if provided
+        full_prompt = context
         if conversation_history:
-            for msg in conversation_history:
-                formatted_history.append({
-                    "user_name": "user" if msg["role"] == "user" else "assistant",
-                    "text": msg["content"]
-                })
+            for entry in conversation_history:
+                full_prompt += f"{entry['role']}: {entry['content']}\n"
+        full_prompt += f"User: {message}\nAI:"
         
-        # Get response from Cohere
+        # Get response from Cohere using the message parameter
         response = co.chat(
             model='command-a-03-2025',
-            message=f"Remember: You are GreenWealth AI speaking in first person singular. Use 'I' and 'me', never 'we' or 'our'. Use the specific financial data provided to give personalized advice. Respond to: {message}",
+            message=full_prompt,
             conversation_id=None,
-            max_tokens=300,
-            temperature=0.7,
-            chat_history=formatted_history
+            max_tokens=500,
+            temperature=0.7
         )
         
         return response.text
         
     except Exception as e:
         print(f"Error in get_chat_response: {str(e)}")
-        return "I apologize, but I'm having trouble processing your request right now. Please try again later." 
+        return "I apologize, but I'm having trouble processing your request right now. Please try again later."
