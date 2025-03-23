@@ -37,7 +37,7 @@ export function ChatButton() {
     setMessages((prev) => [...prev, { role: "user", content: userMessage }])
 
     try {
-      const response = await fetch("http://localhost:8000/api/chat", {
+      const response = await fetch("http://localhost:5000/api/chat", {
         method: "POST",
         headers: {
           "Accept": "application/json",
