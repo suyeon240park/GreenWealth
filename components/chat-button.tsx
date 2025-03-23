@@ -1,71 +1,139 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { MessageCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+
+interface Message {
+  role: "user" | "assistant"
+  content: string
+}
 
 export function ChatButton() {
   const [isOpen, setIsOpen] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const clientId = "67de38e490625d0022c978c1" // Use the same client ID as Plaid
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+    }
+  }, [messages])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim() || isLoading) return
+
+    const userMessage = input.trim()
+    setInput("")
+    setIsLoading(true)
+
+    // Add user message to chat
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }])
+
+    try {
+      const response = await fetch("http://localhost:8000/api/chat", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          user_id: clientId
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to get response")
+      }
+
+      const data = await response.json()
+      setMessages(data.conversation_history)
+    } catch (error) {
+      console.error("Error sending message:", error)
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "I apologize, but I'm having trouble processing your request right now. Please try again later.",
+        },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <>
-      {isOpen && (
-        <Card className="fixed bottom-20 right-6 w-80 md:w-96 z-50 shadow-lg">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Smart Assistant</CardTitle>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="h-80 overflow-y-auto space-y-4 pb-2">
-            <div className="bg-muted p-3 rounded-lg rounded-tl-none max-w-[80%]">
-              <p className="text-sm">
-                Hi there! I'm your personal finance and sustainability assistant. How can I help you today?
-              </p>
-            </div>
-            <div className="bg-primary text-primary-foreground p-3 rounded-lg rounded-tr-none max-w-[80%] ml-auto">
-              <p className="text-sm">How can I reduce my carbon footprint?</p>
-            </div>
-            <div className="bg-muted p-3 rounded-lg rounded-tl-none max-w-[80%]">
-              <p className="text-sm">
-                Based on your spending patterns, I recommend:
-                <br />
-                <br />
-                1. Switch to public transport twice a week
-                <br />
-                2. Buy seasonal produce from local markets
-                <br />
-                3. Consolidate your online shopping orders
-                <br />
-                <br />
-                These changes could reduce your carbon footprint by up to 30%!
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter className="pt-2">
-            <div className="flex w-full items-center space-x-2">
-              <Input placeholder="Ask a question..." className="flex-1" />
-              <Button size="icon">
-                <MessageCircle className="h-4 w-4" />
-                <span className="sr-only">Send message</span>
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-      )}
-
       <Button
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+        variant="outline"
         size="icon"
+        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <MessageCircle className="h-6 w-6" />
-        <span className="sr-only">Open chat</span>
+        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </Button>
+
+      {isOpen && (
+        <div className="fixed bottom-20 right-4 w-80 rounded-lg border bg-background shadow-lg">
+          <div className="flex items-center justify-between border-b p-4">
+            <h3 className="font-semibold">Chat with GreenWealth AI</h3>
+            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <ScrollArea ref={scrollAreaRef} className="h-[400px] p-4">
+            <div className="space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-lg p-3 ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    }`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-lg bg-muted p-3">
+                    Thinking...
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <form onSubmit={handleSubmit} className="border-t p-4">
+            <div className="flex space-x-2">
+              <Input
+                placeholder="Type your message..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={isLoading}
+              />
+              <Button type="submit" disabled={isLoading}>
+                Send
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
     </>
   )
 }
