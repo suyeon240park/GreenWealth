@@ -1,0 +1,27 @@
+🚀 Getting Started
+1. Install Dependencies
+Run the following command to install the required frontend dependencies
+npm install react@18 react-dom@18 date-fns@3 react-day-picker@8.10.1 --save
+
+2. Run the Project Locally
+Frontend
+Start the frontend development server
+npm run dev
+Backend
+Run the backend server using Flask
+python backend/app.py
+
+🔗 Plaid Login Instructions
+To test Plaid integration, select an unOAuth institution such as First Platypus Bank.
+Use one of the following test usernames
+user_credit_profile_poor
+user_credit_profile_excellent
+user_bank_income
+user_credit_bonus
+For the password, enter anything.
+
+🔍 Features & Testing Focus
+1. AI-powered finance & sustainability insights
+2. Custom Plaid test users for different financial scenarios
+3. Real-time transaction analysis with sustainability tracking
+4. Investment & expense categorization for smart financial decisions

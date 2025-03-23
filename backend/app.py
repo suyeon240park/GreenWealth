@@ -132,8 +132,10 @@ def get_transactions():
         
         response = client.transactions_get(request)
         transactions = response['transactions']
+
+        print(response)
         
-        # Process transactions to match our frontend format
+        # Process transactions to match frontend format
         processed_transactions = []
         for transaction in transactions:
             # Map Plaid categories to our carbon impact categories
