@@ -160,19 +160,19 @@ def get_transactions():
 def map_category_to_carbon_impact(category):
     # Find them from API doc
     category_map = {
-        # using Climatiq coefficient fo estimation for transportation
+        # using GHG Protocol coefficient for estimation for transportation
         'TRANSPORTATION': {'impact': 'high', 'factor': 1.853},
-        # using Climatiq coefficient fo estimation for travel
+        # using U.S. Government (EPA) coefficient fo estimation for travel
         'TRAVEL': {'impact': 'high', 'factor': 1.278},
-        # using Climatiq coefficient fo estimation for food
+        # using  U.S. Government (EPA) coefficient calc for estimation for food
         'FOOD_AND_DRINK': {'impact': 'medium', 'factor': 0.255}, #
-        # using Climatiq coefficient fo estimation for general merchandise
-        'GENERAL_MERCHANDISE': {'impact': 'medium', 'factor': 0.1919},
-        # using Climatiq coefficient fo estimation for home improvement
+        # using U.S. Government (EPA) coefficient for estimation for general merchandise
+        'GENERAL_MERCHANDISE': {'impact': 'medium', 'factor': 0.194},
+        # using U.S. Government (EPA) coefficient fo estimation for home improvement
         'HOME_IMPROVEMENT': {'impact': 'medium', 'factor': 0.2678},
-        # using Climatiq coefficient fo estimation for rent and utilities
+        # using U.S. Government (EPA) coefficient fo estimation for rent and utilities
         'RENT_AND_UTILITIES': {'impact': 'medium', 'factor': 0.1211},
-        # using Climatiq coefficient fo estimation for general services
+        # using U.S. Government (EPA) coefficient fo estimation for general services
         'GENERAL_SERVICES': {'impact': 'low', 'factor': 0.1417},
     }
     
