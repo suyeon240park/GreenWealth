@@ -45,7 +45,6 @@
     "embla-carousel-react": "8.5.1",
     "firebase": "^11.5.0",
     "input-otp": "1.4.1",
-    "lucide-react": "^0.454.0",
     "next": "15.1.0",
     "next-themes": "^0.4.4",
     "react": "^18.3.1",
@@ -54,7 +53,6 @@
     "react-hook-form": "^7.54.1",
     "react-plaid-link": "^3.6.1",
     "react-resizable-panels": "^2.1.7",
-    "recharts": "latest",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
@@ -62,10 +60,12 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/node": "^22.13.11",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "lucide-react": "^0.483.0",
     "postcss": "^8",
+    "recharts": "^2.15.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }

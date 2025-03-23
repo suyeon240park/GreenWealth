@@ -4,8 +4,9 @@ import { Inter } from "next/font/google"
 import type { Metadata } from "next"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Sidebar } from "@/components/sidebar"
 import { PlaidProvider } from "../lib/plaid-context"
+import Link from "next/link"
+import { Leaf } from "lucide-react"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,8 +25,15 @@ export default function RootLayout({
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.className)}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <PlaidProvider>
-            <div className="flex min-h-screen flex-col md:flex-row">
-              <Sidebar />
+            <div className="flex min-h-screen flex-col">
+              <header className="border-b">
+                <div className="flex h-16 items-center px-4">
+                  <Link href="/" className="flex items-center gap-2">
+                    <Leaf className="h-6 w-6 text-green-500" />
+                    <span className="text-lg font-bold">EcoFinance</span>
+                  </Link>
+                </div>
+              </header>
               <div className="flex-1">{children}</div>
             </div>
           </PlaidProvider>
