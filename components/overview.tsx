@@ -87,7 +87,10 @@ export function Overview() {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis />
-        <Tooltip />
+        <Tooltip 
+          formatter={(value: number) => [`$${value.toLocaleString()}`]}
+          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
+        />
         <Legend />
         <Bar dataKey="Income" fill="#10b981" />
         <Bar dataKey="Spending" fill="#f43f5e" />

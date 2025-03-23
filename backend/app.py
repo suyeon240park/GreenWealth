@@ -210,7 +210,11 @@ def get_carbon_footprint():
         # Calculate carbon footprint by category
         carbon_by_category = {}
         for transaction in transactions:
+            # Skip non-carbon-emitting categories
             category = transaction.personal_finance_category.primary
+            if category in ['INCOME', 'LOAN_PAYMENTS', 'TRANSFER_IN', 'TRANSFER_OUT']:
+                continue
+                
             carbon_impact = map_category_to_carbon_impact(category)
             carbon_amount = calculate_carbon_footprint(transaction.amount, carbon_impact['factor'])
             
