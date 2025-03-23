@@ -160,13 +160,20 @@ def get_transactions():
 def map_category_to_carbon_impact(category):
     # Find them from API doc
     category_map = {
-        'TRANSPORTATION': {'impact': 'high', 'factor': 0.3},
-        'TRAVEL': {'impact': 'high', 'factor': 0.4},
-        'FOOD_AND_DRINK': {'impact': 'medium', 'factor': 0.2},
-        'GENERAL_MERCHANDISE': {'impact': 'medium', 'factor': 0.15},
-        'HOME_IMPROVEMENT': {'impact': 'medium', 'factor': 0.15},
-        'RENT_AND_UTILITIES': {'impact': 'medium', 'factor': 0.1},
-        'GENERAL_SERVICES': {'impact': 'low', 'factor': 0.05},
+        # using Climatiq coefficient fo estimation for transportation
+        'TRANSPORTATION': {'impact': 'high', 'factor': 1.853},
+        # using Climatiq coefficient fo estimation for travel
+        'TRAVEL': {'impact': 'high', 'factor': 1.278},
+        # using Climatiq coefficient fo estimation for food
+        'FOOD_AND_DRINK': {'impact': 'medium', 'factor': 0.255}, #
+        # using Climatiq coefficient fo estimation for general merchandise
+        'GENERAL_MERCHANDISE': {'impact': 'medium', 'factor': 0.1919},
+        # using Climatiq coefficient fo estimation for home improvement
+        'HOME_IMPROVEMENT': {'impact': 'medium', 'factor': 0.2678},
+        # using Climatiq coefficient fo estimation for rent and utilities
+        'RENT_AND_UTILITIES': {'impact': 'medium', 'factor': 0.1211},
+        # using Climatiq coefficient fo estimation for general services
+        'GENERAL_SERVICES': {'impact': 'low', 'factor': 0.1417},
     }
     
     return category_map.get(category, {'impact': 'low', 'factor': 0.05})
